@@ -7,13 +7,14 @@
       content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <title>Text Engine</title>
-    <script src="./html2canvas.min.js"></script>
+    <script src="./html-to-image.js"></script>
     <style>
+      
     </style>
   </head>
   <body>
-    <div content-editable class="text">
-      Text!
+    <div contenteditable class="text">
+      中文竖排文本！
     </div>
     <button onclick="convert();">Get Image</button>
     <div class="img">
@@ -22,15 +23,20 @@
     <script>
       var text = document.querySelector(".text");
       setSize();
+      setVertical();
 
       function setSize(){
         text.style.width = "100px";
         text.style.height = "50px";
       }
 
+      function setVertical(){
+        text.style.writingMode = "vertical-rl";
+      }
+
       function convert() {
-        console.log("convert");  
-        html2canvas(text,{ backgroundColor: null }).then(function(canvas) {
+        console.log("convert");
+        htmlToImage.toCanvas(text).then(function (canvas) {
           document.getElementById("result").src = canvas.toDataURL("image/png");
         });
       }
