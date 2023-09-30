@@ -18,24 +18,80 @@
   </head>
   <body>
     <div contenteditable class="text">
-      中文[b][i]竖排[/i][/b]文本[color=#ff0000]！[/color]
+      AAA A AAA!
     </div>
     <div style="float:left">
-      <textarea></textarea>
       <button onclick="convert();">Get Image</button>
       <div class="img">
         <img alt="" id="result"/>
       </div>
     </div>
     <script>
+      var width = "100px";
+      var height = "150px"; 
+      var presetStyle = {
+        "familyName":"方正黑体简体",
+        "direction":0,
+        "lineSpace":1.25,
+        "kerning":5,
+        "alignment":2,
+        "wrap":true,
+        "bold":true,
+        "italic":false,
+        "capital":true,
+        "minFontSize":15,
+        "maxFontSize":100
+      }
       var text = document.querySelector(".text");
-      handleRichText();
       setSize();
-      setVertical();
-      textFit(text, {minFontSize:10, maxFontSize: 100,multiLine: true});
+      applyStyle(presetStyle);
+      handleRichText();
+      autoSize(presetStyle);
+      autoWidth();
+
       function handleRichText(){
         const parsed = parseBBCode(text.innerText)
         buildTextRuns(parsed,text)
+      }
+
+      function autoSize(style){
+        if (style.wrap){
+          textFit(text, {minFontSize:style.minFontSize, maxFontSize: style.maxFontSize, multiLine: true});
+        }else{
+          textFit(text, {minFontSize:style.minFontSize, maxFontSize: style.maxFontSize});
+        }
+      }
+
+      function autoWidth(){
+        text.style.width = text.scrollWidth+"px";
+      }
+
+      function applyStyle(style){
+        if (style.wrap === false) {
+          text.style.whiteSpace = "nowrap"
+        }
+        text.style.fontFamily = style.familyName;
+        if (style.capital === true) {
+          text.style.textTransform = "uppercase"
+        }
+        if (style.italic === true) {
+          text.style.fontStyle = "italic";
+        }
+        if (style.bold === true) {
+          text.style.fontWeight = "bold";
+        }
+        if (style.direction === 1) {
+          setVertical();
+        }
+        if (style.alignment === 0) {
+          text.style.textAlign = "left";
+        }else if (style.alignment === 1) {
+          text.style.textAlign = "center"; 
+        }else if (style.alignment === 2) {
+          text.style.textAlign = "right";
+        }
+        text.style.lineHeight=style.lineSpace;
+        text.style.letterSpacing=style.kerning+"px";
       }
 
       function buildTextRuns(runs,parent) {
@@ -65,8 +121,8 @@
       }
       
       function setSize(){
-        text.style.width = "400px";
-        text.style.height = "520px";
+        text.style.width = width;
+        text.style.height = height;
       }
 
       function setVertical(){
