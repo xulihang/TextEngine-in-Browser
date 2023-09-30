@@ -1,0 +1,180 @@
+﻿AppType=JavaFX
+Build1=Default,b4j.example
+File1=b4j.html
+File2=BBCodeParser.js
+File3=html-to-image.js
+File4=index.html
+File5=Layout1.bjl
+File6=textFit.min.js
+FileGroup1=Default Group
+FileGroup2=Default Group
+FileGroup3=Default Group
+FileGroup4=Default Group
+FileGroup5=Default Group
+FileGroup6=Default Group
+Group=Default Group
+Library1=javaobject
+Library2=jcore
+Library3=jfx
+Library4=json
+Library5=jxui
+Library6=jstringutils
+NumberOfFiles=6
+NumberOfLibraries=6
+NumberOfModules=0
+Version=8.9
+@EndOfDesignText@
+#Region Project Attributes 
+	#MainFormWidth: 600
+	#MainFormHeight: 600 
+#End Region
+
+Sub Process_Globals
+	Private fx As JFX
+	Private MainForm As Form
+	Private xui As XUI 
+	Private Button1 As B4XView
+	Private ImageView1 As ImageView
+	Private WebView1 As WebView
+End Sub
+
+Sub AppStart (Form1 As Form, Args() As String)
+	MainForm = Form1
+	MainForm.RootPane.LoadLayout("Layout1")
+	MainForm.Show
+	WebView1.LoadUrl(File.GetUri(File.DirAssets,"b4j.html"))
+End Sub
+
+Private Sub asJO(o As Object) As JavaObject
+	Return o
+End Sub
+
+Private Sub WebView1_PageFinished (Url As String)
+	Dim engine As JavaObject = asJO(WebView1).RunMethod("getEngine",Null)
+	asJO(Me).RunMethod("setBridge",Array(engine))
+End Sub
+
+Sub Button1_Click
+	Dim m As Map
+	m.Initialize
+	m.Put("width",150)
+	m.Put("height",200)
+	Dim style As Map
+	style.Initialize
+	style.Put("familyName","方正黑体简体")
+	style.Put("direction",0)
+	style.Put("kerning",0)
+	style.Put("alignment",2)
+	style.Put("wrap",False)
+	style.Put("bold",False)
+	style.Put("italic",False)
+	style.Put("minFontSize",10)
+	style.Put("maxFontSize",150)
+	m.Put("style",style)
+	m.Put("text","I love my motherland.")
+	Dim json As JSONGenerator
+	json.Initialize(m)
+	Dim param As String = json.ToString
+	param=param.Replace($"""$,$"\""$)
+	ExecuteJavaScript(WebView1,$"renderText(""$&param&$"")"$)
+	wait for getImage(dataURL As String)
+	Dim su As StringUtils
+	Dim base64 As String = dataURL.SubString2("data:image/png;base64,".Length,dataURL.Length)
+	Dim img As Image=BytesToImage(su.DecodeBase64(base64))
+	ImageView1.SetImage(img)
+	ImageView1.SetSize(img.Width,img.Height)
+End Sub
+
+Public Sub BytesToImage(bytes() As Byte) As Image
+	Dim In As InputStream
+	In.InitializeFromBytesArray(bytes, 0, bytes.Length)
+	Dim bmp As Image
+	bmp.Initialize2(In)
+	In.Close
+	Return bmp
+End Sub
+
+Sub test
+	Log("test")
+End Sub
+
+Sub rendered2
+	Log("asdad")
+End Sub
+
+Sub rendered(dataURL As String)
+	CallSubDelayed2(Me,"getImage",dataURL)
+End Sub
+
+Sub ExecuteJavaScript (wv As WebView, script As String) As Object
+	Dim jo As JavaObject = wv
+	Return jo.RunMethodJO("getEngine", Null).RunMethod("executeScript", Array(script))
+End Sub
+
+#if java
+import netscape.javascript.JSObject;
+import javafx.scene.web.WebEngine;
+import java.lang.RuntimeException;
+import java.lang.IllegalAccessException;
+import java.lang.reflect.InvocationTargetException;
+
+import java.lang.Enum;
+import java.lang.reflect.Method;
+import javafx.application.Platform;
+ 
+ 
+public static class Bridge{
+    public void link(String sub) {
+		try{
+			Class<?> c = Class.forName("b4j.example.main");
+			final Method m = c.getDeclaredMethod("_" + sub.toLowerCase());
+			final Object dummy = null;
+			Platform.runLater(new Runnable(){
+				public void run(){
+					try{
+						m.invoke(dummy);
+					}catch (IllegalAccessException e){
+						System.out.println(e);
+				    }catch (InvocationTargetException ite){
+						System.out.println(ite);
+					}
+				}
+			});
+		} catch (Exception e){
+			System.out.println(e);
+	    }
+	}
+    public void link2(String sub,Object arg) { // for call with  1 param
+		boolean isInt = false;
+		int ti = 0;
+		try{
+			Class<?> c = Class.forName("b4j.example.main");
+			Class<?> ac = arg.getClass();
+			if (arg instanceof java.lang.Integer){
+				ac = int.class;
+			}
+			final Method m = c.getDeclaredMethod("_" + sub.toLowerCase(),ac);
+			final Object dummy = null;
+			final Object xarg = arg;
+			Platform.runLater(new Runnable(){
+				public void run(){
+					try{
+						m.invoke(dummy,xarg);
+					}catch (IllegalAccessException e){
+						System.out.println(e);
+				    }catch (InvocationTargetException ite){
+					}
+				}
+			});
+		} catch (Exception e){
+			System.out.println(e);
+	    }
+	}
+
+}
+public static void setBridge(WebEngine we){
+	JSObject jsobj = (JSObject) we.executeScript("window");
+	Bridge b = new Bridge();
+	jsobj.setMember("b4j", b);
+}
+#end if

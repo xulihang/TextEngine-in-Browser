@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta
+      name="viewport"
+      content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Text Engine</title>
+    <script src="./html-to-image.js"></script>
+    <script src="./textFit.min.js"></script>
+    <script src="./BBCodeParser.js"></script>
+    <style>
+      .text {
+        float:left;
+      }
+    </style>
+  </head>
+  <body>
+    <button type="button" onClick="b4j.link('test')">Click Me!</button>
+    <div class="text">
+    </div>
+    <script>
+      var text = document.querySelector(".text");
+      var dataURL = "";
+      var width = 0;
+      var height = 0
+      async function renderText(config) {
+        console.log(config);
+        dataURL = "";
+        config = JSON.parse(config);
+        text.innerText = config.text;
+        width = config.width;
+        height = config.height;
+        setSize();
+        applyStyle(config.style);
+        handleRichText();
+        autoSize(config.style);
+        autoWidth();
+        var canvas = await htmlToImage.toCanvas(text);
+        dataURL = canvas.toDataURL("image/png");
+        b4j.link2('rendered',dataURL);
+        b4j.link('test');
+      }
+
+      function getDataURL(){
+          return dataURL;
+      }
+
+      function handleRichText(){
+        const parsed = parseBBCode(text.innerText)
+        buildTextRuns(parsed,text)
+      }
+
+      function autoSize(style){
+        if (style.wrap){
+          textFit(text, {minFontSize:style.minFontSize, maxFontSize: style.maxFontSize, multiLine: true});
+        }else{
+          textFit(text, {minFontSize:style.minFontSize, maxFontSize: style.maxFontSize});
+        }
+      }
+
+      function autoWidth(){
+        text.style.width = text.scrollWidth+"px";
+      }
+
+      function applyStyle(style){
+        if (style.wrap === false) {
+          text.style.whiteSpace = "nowrap"
+        }
+        text.style.fontFamily = style.familyName;
+        if (style.capital === true) {
+          text.style.textTransform = "uppercase"
+        }
+        if (style.italic === true) {
+          text.style.fontStyle = "italic";
+        }
+        if (style.bold === true) {
+          text.style.fontWeight = "bold";
+        }
+        if (style.direction === 1) {
+          setVertical();
+        }
+        if (style.alignment === 0) {
+          text.style.textAlign = "left";
+        }else if (style.alignment === 1) {
+          text.style.textAlign = "center"; 
+        }else if (style.alignment === 2) {
+          text.style.textAlign = "right";
+        }
+        text.style.lineHeight=style.lineSpace;
+        text.style.letterSpacing=style.kerning+"px";
+      }
+
+      function buildTextRuns(runs,parent) {
+        parent.innerHTML = "";
+        for (let index = 0; index < runs.length; index++) {
+          const run = runs[index];
+          var span = document.createElement("span");
+          span.innerText = run.text;
+
+          if (run.bold || run.fauxBold) {
+              span.style.fontWeight = "bold";
+          }
+          if (run.italic || run.fauxItalic) {
+              span.style.fontStyle = "italic";
+          }
+          if (run.color) {
+              span.style.color = "rgb(" + run.color.r + "," + run.color.g + "," + run.color.b + ")";
+          }
+          if (run.fontsize) {
+              span.style.fontSize = run.fontsize + "px";
+          }
+          if (run.fontname) {
+              span.style.fontFamily = run.fontname;
+          }
+          parent.append(span);
+        }
+      }
+      
+      function setSize(){
+        text.style.width = width + "px";
+        text.style.height = height + "px";
+      }
+
+      function setVertical(){
+        text.style.writingMode = "vertical-rl";
+      }
+    </script>
+  </body>
+</html>
