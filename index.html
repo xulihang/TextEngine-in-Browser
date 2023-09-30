@@ -8,26 +8,32 @@
     />
     <title>Text Engine</title>
     <script src="./html-to-image.js"></script>
+    <script src="./textFit.min.js"></script>
     <style>
-      
+      .text {
+        float:left;
+      }
     </style>
   </head>
   <body>
     <div contenteditable class="text">
-      中文竖排文本！
+      中文竖排文本<span style="color:red;">！</span>
     </div>
-    <button onclick="convert();">Get Image</button>
-    <div class="img">
-      <img alt="" id="result"/>
+    <div style="float:left">
+      <textarea></textarea>
+      <button onclick="convert();">Get Image</button>
+      <div class="img">
+        <img alt="" id="result"/>
+      </div>
     </div>
     <script>
       var text = document.querySelector(".text");
       setSize();
       setVertical();
-
+      textFit(text, {minFontSize:10, maxFontSize: 100,multiLine: true});
       function setSize(){
-        text.style.width = "100px";
-        text.style.height = "50px";
+        text.style.width = "400px";
+        text.style.height = "520px";
       }
 
       function setVertical(){
