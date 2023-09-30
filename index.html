@@ -9,6 +9,7 @@
     <title>Text Engine</title>
     <script src="./html-to-image.js"></script>
     <script src="./textFit.min.js"></script>
+    <script src="./BBCodeParser.js"></script>
     <style>
       .text {
         float:left;
@@ -17,7 +18,7 @@
   </head>
   <body>
     <div contenteditable class="text">
-      中文竖排文本<span style="color:red;">！</span>
+      中文[b][i]竖排[/i][/b]文本[color=#ff0000]！[/color]
     </div>
     <div style="float:left">
       <textarea></textarea>
@@ -28,9 +29,41 @@
     </div>
     <script>
       var text = document.querySelector(".text");
+      handleRichText();
       setSize();
       setVertical();
       textFit(text, {minFontSize:10, maxFontSize: 100,multiLine: true});
+      function handleRichText(){
+        const parsed = parseBBCode(text.innerText)
+        buildTextRuns(parsed,text)
+      }
+
+      function buildTextRuns(runs,parent) {
+        parent.innerHTML = "";
+        for (let index = 0; index < runs.length; index++) {
+          const run = runs[index];
+          var span = document.createElement("span");
+          span.innerText = run.text;
+
+          if (run.bold || run.fauxBold) {
+              span.style.fontWeight = "bold";
+          }
+          if (run.italic || run.fauxItalic) {
+              span.style.fontStyle = "italic";
+          }
+          if (run.color) {
+              span.style.color = "rgb(" + run.color.r + "," + run.color.g + "," + run.color.b + ")";
+          }
+          if (run.fontsize) {
+              span.style.fontSize = run.fontsize + "px";
+          }
+          if (run.fontname) {
+              span.style.fontFamily = run.fontname;
+          }
+          parent.append(span);
+        }
+      }
+      
       function setSize(){
         text.style.width = "400px";
         text.style.height = "520px";
